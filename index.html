@@ -1,1 +1,412 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>プログラムタイマー</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
 
+    body {
+      background-color: #f3f4f6;
+      color: #1f2937;
+      display: flex;
+      justify-content: center;
+      padding: 24px 16px 40px;
+      min-height: 100vh;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+
+    .display-card {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 28px 20px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      margin-bottom: 16px;
+    }
+
+    .step-name {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: #4b5563;
+      min-height: 1.5em;
+    }
+
+    .timer {
+      font-size: 4.5rem;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+      margin: 8px 0;
+      color: #2563eb;
+      letter-spacing: -1px;
+    }
+
+    .sub-text {
+      font-size: 0.95rem;
+      color: #6b7280;
+    }
+
+    .controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 14px 0;
+      font-size: 1rem;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-weight: 700;
+      background-color: #e5e7eb;
+      color: #374151;
+      transition: opacity 0.15s, transform 0.05s;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background-color: #2563eb;
+      color: #ffffff;
+    }
+
+    .btn-secondary {
+      background-color: #9ca3af;
+      color: #ffffff;
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .program-settings {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .program-settings h2 {
+      font-size: 1.1rem;
+      margin-bottom: 14px;
+      color: #111827;
+    }
+
+    #step-list {
+      list-style: none;
+      margin-bottom: 16px;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    #step-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 8px;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 0.95rem;
+    }
+
+    .step-delete-btn {
+      background: none;
+      border: none;
+      color: #ef4444;
+      font-size: 1.1rem;
+      cursor: pointer;
+      padding: 0 6px;
+    }
+
+    .add-form {
+      display: flex;
+      gap: 8px;
+    }
+
+    .add-form input {
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    .add-form input:focus {
+      border-color: #2563eb;
+    }
+
+    .add-form input[type="text"] {
+      flex: 2;
+    }
+
+    .add-form input[type="number"] {
+      flex: 1;
+      width: 70px;
+    }
+
+    .btn-small {
+      padding: 10px 14px;
+      background-color: #10b981;
+      color: white;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>プログラムタイマー</h1>
+
+    <div class="display-card">
+      <div id="step-name" class="step-name">準備完了</div>
+      <div id="time-display" class="timer">00:00</div>
+      <div id="step-counter" class="sub-text">ステップ: - / -</div>
+    </div>
+
+    <div class="controls">
+      <button id="start-btn" class="btn btn-primary">スタート</button>
+      <button id="pause-btn" class="btn" disabled>一時停止</button>
+      <button id="reset-btn" class="btn btn-secondary">リセット</button>
+    </div>
+
+    <div class="program-settings">
+      <h2>タイマー設定</h2>
+      <ul id="step-list"></ul>
+      <form id="add-step-form" class="add-form">
+        <input type="text" id="new-step-name" placeholder="項目名 (例: 集中)" required>
+        <input type="number" id="new-step-duration" placeholder="秒数" min="1" required>
+        <button type="submit" class="btn-small">追加</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "program_timer_steps";
+
+    // 保存データがあれば読み込み、なければデフォルト
+    let defaultSteps = [
+      { name: "ウォームアップ", duration: 10 },
+      { name: "トレーニング", duration: 30 },
+      { name: "休憩", duration: 10 }
+    ];
+
+    let steps = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultSteps;
+
+    let currentStepIndex = 0;
+    let remainingTime = 0;
+    let timerId = null;
+    let isRunning = false;
+    let wakeLock = null;
+
+    const stepNameEl = document.getElementById("step-name");
+    const timeDisplayEl = document.getElementById("time-display");
+    const stepCounterEl = document.getElementById("step-counter");
+    const startBtn = document.getElementById("start-btn");
+    const pauseBtn = document.getElementById("pause-btn");
+    const resetBtn = document.getElementById("reset-btn");
+    const stepListEl = document.getElementById("step-list");
+    const addForm = document.getElementById("add-step-form");
+
+    function saveSteps() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(steps));
+    }
+
+    function formatTime(seconds) {
+      const m = Math.floor(seconds / 60).toString().padStart(2, "0");
+      const s = (seconds % 60).toString().padStart(2, "0");
+      return `${m}:${s}`;
+    }
+
+    function renderSteps() {
+      stepListEl.innerHTML = "";
+      steps.forEach((step, idx) => {
+        const li = document.createElement("li");
+        
+        const textSpan = document.createElement("span");
+        textSpan.textContent = `${idx + 1}. ${step.name} (${step.duration}秒)`;
+        
+        const delBtn = document.createElement("button");
+        delBtn.innerHTML = "&times;";
+        delBtn.className = "step-delete-btn";
+        delBtn.title = "削除";
+        delBtn.addEventListener("click", () => {
+          if (isRunning) return;
+          steps.splice(idx, 1);
+          saveSteps();
+          resetTimerState();
+          renderSteps();
+          updateDisplay();
+        });
+
+        li.appendChild(textSpan);
+        li.appendChild(delBtn);
+        stepListEl.appendChild(li);
+      });
+    }
+
+    function updateDisplay() {
+      if (steps.length === 0) {
+        stepNameEl.textContent = "ステップを追加してください";
+        timeDisplayEl.textContent = "00:00";
+        stepCounterEl.textContent = "ステップ: 0 / 0";
+        startBtn.disabled = true;
+        return;
+      }
+
+      if (currentStepIndex < steps.length) {
+        stepNameEl.textContent = steps[currentStepIndex].name;
+        timeDisplayEl.textContent = formatTime(remainingTime);
+        stepCounterEl.textContent = `ステップ: ${currentStepIndex + 1} / ${steps.length}`;
+      }
+    }
+
+    function resetTimerState() {
+      clearInterval(timerId);
+      isRunning = false;
+      releaseWakeLock();
+      currentStepIndex = 0;
+      remainingTime = steps.length > 0 ? steps[0].duration : 0;
+      startBtn.disabled = steps.length === 0;
+      pauseBtn.disabled = true;
+    }
+
+    // スマホ画面スリープ防止
+    async function requestWakeLock() {
+      if ("wakeLock" in navigator) {
+        try {
+          wakeLock = await navigator.wakeLock.request("screen");
+        } catch (err) {
+          console.warn("Wake Lock エラー:", err);
+        }
+      }
+    }
+
+    function releaseWakeLock() {
+      if (wakeLock) {
+        wakeLock.release().then(() => { wakeLock = null; });
+      }
+    }
+
+    function playSound(freq, duration, type = "sine") {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
+        osc.stop(ctx.currentTime + duration);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function tick() {
+      if (remainingTime > 1) {
+        remainingTime--;
+        updateDisplay();
+      } else {
+        currentStepIndex++;
+        if (currentStepIndex < steps.length) {
+          remainingTime = steps[currentStepIndex].duration;
+          playSound(880, 0.2); // 次ステップ切り替え音
+          updateDisplay();
+        } else {
+          // 完了
+          clearInterval(timerId);
+          isRunning = false;
+          releaseWakeLock();
+          playSound(587.33, 0.15, "triangle");
+          setTimeout(() => playSound(880, 0.4, "triangle"), 150);
+          stepNameEl.textContent = "全ステップ終了！";
+          timeDisplayEl.textContent = "00:00";
+          startBtn.disabled = true;
+          pauseBtn.disabled = true;
+        }
+      }
+    }
+
+    startBtn.addEventListener("click", () => {
+      if (steps.length === 0) return;
+      if (!isRunning) {
+        isRunning = true;
+        startBtn.disabled = true;
+        pauseBtn.disabled = false;
+        requestWakeLock();
+        timerId = setInterval(tick, 1000);
+      }
+    });
+
+    pauseBtn.addEventListener("click", () => {
+      if (isRunning) {
+        isRunning = false;
+        clearInterval(timerId);
+        releaseWakeLock();
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+      }
+    });
+
+    resetBtn.addEventListener("click", () => {
+      resetTimerState();
+      updateDisplay();
+    });
+
+    addForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const nameInput = document.getElementById("new-step-name");
+      const durationInput = document.getElementById("new-step-duration");
+
+      steps.push({
+        name: nameInput.value.trim(),
+        duration: parseInt(durationInput.value, 10)
+      });
+
+      saveSteps();
+      nameInput.value = "";
+      durationInput.value = "";
+
+      if (!isRunning && currentStepIndex === 0) {
+        remainingTime = steps[0].duration;
+        startBtn.disabled = false;
+      }
+
+      renderSteps();
+      updateDisplay();
+    });
+
+    // 初期起動
+    resetTimerState();
+    renderSteps();
+    updateDisplay();
+  </script>
+</body>
+</html>
