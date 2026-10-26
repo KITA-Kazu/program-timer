@@ -18,26 +18,26 @@
       color: #1f2937;
       display: flex;
       justify-content: center;
-      padding: 24px 16px 40px;
+      padding: 20px 16px 40px;
       min-height: 100vh;
     }
 
     .container {
       width: 100%;
-      max-width: 420px;
+      max-width: 440px;
     }
 
     h1 {
       text-align: center;
-      font-size: 1.5rem;
-      margin-bottom: 20px;
+      font-size: 1.4rem;
+      margin-bottom: 16px;
       font-weight: 700;
     }
 
     .display-card {
       background: #ffffff;
       border-radius: 20px;
-      padding: 28px 20px;
+      padding: 24px 20px;
       text-align: center;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
       margin-bottom: 16px;
@@ -48,26 +48,31 @@
       font-weight: 600;
       color: #4b5563;
       min-height: 1.5em;
+      word-break: break-all;
     }
 
     .timer {
       font-size: 4.5rem;
       font-weight: 800;
       font-variant-numeric: tabular-nums;
-      margin: 8px 0;
+      margin: 4px 0;
       color: #2563eb;
       letter-spacing: -1px;
     }
 
-    .sub-text {
+    .sub-info {
+      display: flex;
+      justify-content: center;
+      gap: 16px;
       font-size: 0.95rem;
       color: #6b7280;
+      font-weight: 500;
     }
 
     .controls {
       display: flex;
       gap: 10px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
     .btn {
@@ -103,23 +108,68 @@
       transform: none;
     }
 
-    .program-settings {
+    .panel {
       background: #ffffff;
-      padding: 20px;
+      padding: 18px 20px;
       border-radius: 16px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      margin-bottom: 16px;
     }
 
-    .program-settings h2 {
-      font-size: 1.1rem;
-      margin-bottom: 14px;
+    .panel h2 {
+      font-size: 1.05rem;
+      margin-bottom: 12px;
       color: #111827;
+    }
+
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .setting-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .setting-row label {
+      font-size: 0.9rem;
+      color: #4b5563;
+      font-weight: 600;
+    }
+
+    .select-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    select {
+      padding: 8px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      background: #fff;
+      color: #374151;
+      outline: none;
+    }
+
+    .btn-preview {
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #374151;
     }
 
     #step-list {
       list-style: none;
-      margin-bottom: 16px;
-      max-height: 220px;
+      margin-bottom: 14px;
+      max-height: 200px;
       overflow-y: auto;
     }
 
@@ -127,7 +177,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px 8px;
+      padding: 9px 4px;
       border-bottom: 1px solid #f3f4f6;
       font-size: 0.95rem;
     }
@@ -136,9 +186,10 @@
       background: none;
       border: none;
       color: #ef4444;
-      font-size: 1.1rem;
+      font-size: 1.25rem;
       cursor: pointer;
-      padding: 0 6px;
+      padding: 0 8px;
+      line-height: 1;
     }
 
     .add-form {
@@ -164,17 +215,18 @@
 
     .add-form input[type="number"] {
       flex: 1;
-      width: 70px;
+      width: 75px;
     }
 
-    .btn-small {
-      padding: 10px 14px;
+    .btn-add {
+      padding: 10px 16px;
       background-color: #10b981;
       color: white;
       border-radius: 8px;
       border: none;
       font-weight: 600;
       cursor: pointer;
+      white-space: nowrap;
     }
   </style>
 </head>
@@ -182,58 +234,110 @@
   <div class="container">
     <h1>プログラムタイマー</h1>
 
+    <!-- 画面表示カード -->
     <div class="display-card">
       <div id="step-name" class="step-name">準備完了</div>
       <div id="time-display" class="timer">00:00</div>
-      <div id="step-counter" class="sub-text">ステップ: - / -</div>
+      <div class="sub-info">
+        <span id="step-counter">ステップ: - / -</span>
+        <span id="loop-counter">周回: - / -</span>
+      </div>
     </div>
 
+    <!-- コントロールボタン -->
     <div class="controls">
       <button id="start-btn" class="btn btn-primary">スタート</button>
       <button id="pause-btn" class="btn" disabled>一時停止</button>
       <button id="reset-btn" class="btn btn-secondary">リセット</button>
     </div>
 
-    <div class="program-settings">
-      <h2>タイマー設定</h2>
+    <!-- 設定オプション（ループ回数・通知音） -->
+    <div class="panel">
+      <h2>動作設定</h2>
+      <div class="setting-row">
+        <label for="loop-select">繰り返し回数</label>
+        <select id="loop-select">
+          <option value="1">1回のみ</option>
+          <option value="2">2回</option>
+          <option value="3">3回</option>
+          <option value="5">5回</option>
+          <option value="10">10回</option>
+          <option value="999">無限ループ (∞)</option>
+        </select>
+      </div>
+
+      <div class="setting-row">
+        <label for="sound-select">切り替え通知音</label>
+        <div class="select-group">
+          <select id="sound-select">
+            <option value="beep">1. 電子音 (ピピッ)</option>
+            <option value="chime">2. チャイム</option>
+            <option value="wood">3. ウッドクリック</option>
+            <option value="whistle">4. 高音ホイッスル</option>
+            <option value="bell">5. アラームベル</option>
+          </select>
+          <button type="button" id="preview-sound-btn" class="btn-preview">試聴</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ステップリスト & 追加フォーム -->
+    <div class="panel">
+      <h2>タイマー項目</h2>
       <ul id="step-list"></ul>
       <form id="add-step-form" class="add-form">
-        <input type="text" id="new-step-name" placeholder="項目名 (例: 集中)" required>
+        <input type="text" id="new-step-name" placeholder="項目名 (省略可)">
         <input type="number" id="new-step-duration" placeholder="秒数" min="1" required>
-        <button type="submit" class="btn-small">追加</button>
+        <button type="submit" class="btn-add">追加</button>
       </form>
     </div>
   </div>
 
   <script>
-    const STORAGE_KEY = "program_timer_steps";
+    const STORAGE_KEY = "program_timer_steps_v2";
+    const SOUND_STORAGE_KEY = "program_timer_sound_v2";
+    const LOOP_STORAGE_KEY = "program_timer_loop_v2";
 
-    // 保存データがあれば読み込み、なければデフォルト
-    let defaultSteps = [
+    // 初期データ
+    const defaultSteps = [
       { name: "ウォームアップ", duration: 10 },
-      { name: "トレーニング", duration: 30 },
-      { name: "休憩", duration: 10 }
+      { name: "トレーニング", duration: 20 },
+      { name: "休憩", duration: 5 }
     ];
 
     let steps = JSON.parse(localStorage.getItem(STORAGE_KEY)) || defaultSteps;
+    let selectedSound = localStorage.getItem(SOUND_STORAGE_KEY) || "beep";
+    let targetLoops = parseInt(localStorage.getItem(LOOP_STORAGE_KEY) || "1", 10);
 
     let currentStepIndex = 0;
+    let currentLoop = 1;
     let remainingTime = 0;
     let timerId = null;
     let isRunning = false;
     let wakeLock = null;
 
+    // DOM要素
     const stepNameEl = document.getElementById("step-name");
     const timeDisplayEl = document.getElementById("time-display");
     const stepCounterEl = document.getElementById("step-counter");
+    const loopCounterEl = document.getElementById("loop-counter");
     const startBtn = document.getElementById("start-btn");
     const pauseBtn = document.getElementById("pause-btn");
     const resetBtn = document.getElementById("reset-btn");
     const stepListEl = document.getElementById("step-list");
     const addForm = document.getElementById("add-step-form");
+    const soundSelect = document.getElementById("sound-select");
+    const previewSoundBtn = document.getElementById("preview-sound-btn");
+    const loopSelect = document.getElementById("loop-select");
 
-    function saveSteps() {
+    // 初期設定反映
+    soundSelect.value = selectedSound;
+    loopSelect.value = targetLoops.toString();
+
+    function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(steps));
+      localStorage.setItem(SOUND_STORAGE_KEY, soundSelect.value);
+      localStorage.setItem(LOOP_STORAGE_KEY, loopSelect.value);
     }
 
     function formatTime(seconds) {
@@ -246,10 +350,10 @@
       stepListEl.innerHTML = "";
       steps.forEach((step, idx) => {
         const li = document.createElement("li");
-        
+
         const textSpan = document.createElement("span");
         textSpan.textContent = `${idx + 1}. ${step.name} (${step.duration}秒)`;
-        
+
         const delBtn = document.createElement("button");
         delBtn.innerHTML = "&times;";
         delBtn.className = "step-delete-btn";
@@ -257,7 +361,7 @@
         delBtn.addEventListener("click", () => {
           if (isRunning) return;
           steps.splice(idx, 1);
-          saveSteps();
+          saveState();
           resetTimerState();
           renderSteps();
           updateDisplay();
@@ -274,6 +378,7 @@
         stepNameEl.textContent = "ステップを追加してください";
         timeDisplayEl.textContent = "00:00";
         stepCounterEl.textContent = "ステップ: 0 / 0";
+        loopCounterEl.textContent = "周回: - / -";
         startBtn.disabled = true;
         return;
       }
@@ -282,6 +387,8 @@
         stepNameEl.textContent = steps[currentStepIndex].name;
         timeDisplayEl.textContent = formatTime(remainingTime);
         stepCounterEl.textContent = `ステップ: ${currentStepIndex + 1} / ${steps.length}`;
+        const loopTotalText = targetLoops >= 999 ? "∞" : targetLoops;
+        loopCounterEl.textContent = `周回: ${currentLoop} / ${loopTotalText}`;
       }
     }
 
@@ -290,18 +397,123 @@
       isRunning = false;
       releaseWakeLock();
       currentStepIndex = 0;
+      currentLoop = 1;
+      targetLoops = parseInt(loopSelect.value, 10);
       remainingTime = steps.length > 0 ? steps[0].duration : 0;
       startBtn.disabled = steps.length === 0;
       pauseBtn.disabled = true;
     }
 
-    // スマホ画面スリープ防止
+    // --- 音声生成 (Web Audio API) ---
+    function playSoundType(type) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+
+        if (type === "beep") {
+          // 1. ピピッ (電子音)
+          [0, 0.12].forEach((delay) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.frequency.setValueAtTime(900, ctx.currentTime + delay);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            gain.gain.setValueAtTime(0.3, ctx.currentTime + delay);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.08);
+            osc.start(ctx.currentTime + delay);
+            osc.stop(ctx.currentTime + delay + 0.08);
+          });
+        } else if (type === "chime") {
+          // 2. 和音チャイム (ド・ソ)
+          [523.25, 783.99].forEach((freq) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "sine";
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            gain.gain.setValueAtTime(0.25, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.7);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.7);
+          });
+        } else if (type === "wood") {
+          // 3. ウッドクリック
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(400, ctx.currentTime);
+          osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.04);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          gain.gain.setValueAtTime(0.6, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.04);
+        } else if (type === "whistle") {
+          // 4. 高音ホイッスル
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(1760, ctx.currentTime);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          gain.gain.setValueAtTime(0.3, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.35);
+        } else if (type === "bell") {
+          // 5. アラームベル (低音連続)
+          [0, 0.15, 0.3].forEach((delay) => {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = "square";
+            osc.frequency.setValueAtTime(440, ctx.currentTime + delay);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            gain.gain.setValueAtTime(0.15, ctx.currentTime + delay);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.1);
+            osc.start(ctx.currentTime + delay);
+            osc.stop(ctx.currentTime + delay + 0.1);
+          });
+        }
+      } catch (e) {
+        console.error("Audio playback error:", e);
+      }
+    }
+
+    function playFinishFanfare() {
+      // 全周回終了時のファンファーレ音
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        [
+          { f: 523.25, t: 0 },
+          { f: 659.25, t: 0.15 },
+          { f: 783.99, t: 0.3 },
+          { f: 1046.50, t: 0.45 }
+        ].forEach((note) => {
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.type = "triangle";
+          osc.frequency.setValueAtTime(note.f, ctx.currentTime + note.t);
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          gain.gain.setValueAtTime(0.3, ctx.currentTime + note.t);
+          gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + note.t + 0.5);
+          osc.start(ctx.currentTime + note.t);
+          osc.stop(ctx.currentTime + note.t + 0.5);
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // スリープ防止
     async function requestWakeLock() {
       if ("wakeLock" in navigator) {
         try {
           wakeLock = await navigator.wakeLock.request("screen");
         } catch (err) {
-          console.warn("Wake Lock エラー:", err);
+          console.warn("Wake Lock Error:", err);
         }
       }
     }
@@ -312,52 +524,50 @@
       }
     }
 
-    function playSound(freq, duration, type = "sine") {
-      try {
-        const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, ctx.currentTime);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
-        osc.stop(ctx.currentTime + duration);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
+    // 毎秒処理
     function tick() {
       if (remainingTime > 1) {
         remainingTime--;
         updateDisplay();
       } else {
+        // 次のステップへ
         currentStepIndex++;
+
         if (currentStepIndex < steps.length) {
+          // 同一周回内の次ステップ
           remainingTime = steps[currentStepIndex].duration;
-          playSound(880, 0.2); // 次ステップ切り替え音
+          playSoundType(soundSelect.value);
           updateDisplay();
         } else {
-          // 完了
-          clearInterval(timerId);
-          isRunning = false;
-          releaseWakeLock();
-          playSound(587.33, 0.15, "triangle");
-          setTimeout(() => playSound(880, 0.4, "triangle"), 150);
-          stepNameEl.textContent = "全ステップ終了！";
-          timeDisplayEl.textContent = "00:00";
-          startBtn.disabled = true;
-          pauseBtn.disabled = true;
+          // 1周終了時の判定
+          if (targetLoops >= 999 || currentLoop < targetLoops) {
+            // 次の周回を開始
+            currentLoop++;
+            currentStepIndex = 0;
+            remainingTime = steps[0].duration;
+            playSoundType(soundSelect.value);
+            updateDisplay();
+          } else {
+            // 全ループ終了
+            clearInterval(timerId);
+            isRunning = false;
+            releaseWakeLock();
+            playFinishFanfare();
+            stepNameEl.textContent = "全周回が完了しました！";
+            timeDisplayEl.textContent = "00:00";
+            startBtn.disabled = true;
+            pauseBtn.disabled = true;
+          }
         }
       }
     }
 
+    // イベントリスナー
     startBtn.addEventListener("click", () => {
       if (steps.length === 0) return;
       if (!isRunning) {
         isRunning = true;
+        targetLoops = parseInt(loopSelect.value, 10);
         startBtn.disabled = true;
         pauseBtn.disabled = false;
         requestWakeLock();
@@ -380,17 +590,24 @@
       updateDisplay();
     });
 
+    // 項目追加（項目名は省略可能）
     addForm.addEventListener("submit", (e) => {
       e.preventDefault();
       const nameInput = document.getElementById("new-step-name");
       const durationInput = document.getElementById("new-step-duration");
 
+      // 項目名が空欄の場合は「ステップ N」を自動設定
+      let name = nameInput.value.trim();
+      if (!name) {
+        name = `ステップ ${steps.length + 1}`;
+      }
+
       steps.push({
-        name: nameInput.value.trim(),
+        name: name,
         duration: parseInt(durationInput.value, 10)
       });
 
-      saveSteps();
+      saveState();
       nameInput.value = "";
       durationInput.value = "";
 
@@ -401,6 +618,17 @@
 
       renderSteps();
       updateDisplay();
+    });
+
+    soundSelect.addEventListener("change", saveState);
+    loopSelect.addEventListener("change", () => {
+      targetLoops = parseInt(loopSelect.value, 10);
+      saveState();
+      updateDisplay();
+    });
+
+    previewSoundBtn.addEventListener("click", () => {
+      playSoundType(soundSelect.value);
     });
 
     // 初期起動
